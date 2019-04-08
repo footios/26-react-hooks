@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-import axios from 'axios'
+import axios from 'axios';
 
 const todo = (props) => {
 	/* RULES
@@ -11,9 +11,10 @@ const todo = (props) => {
     The 2nd is a function we can use to manipulate that state. */
 
 	const [ todoName, setTodoName ] = useState('');
-    const [ todoList, setTodoList ] = useState([]);
-    
-    /* Let's say that we want to load the todos we sent to the server,
+	const [ todoList, setTodoList ] = useState([]);
+	const [ todoButton, setTodoButton ] = useState(false);
+
+	/* Let's say that we want to load the todos we sent to the server,
        at the point when this component gets loaded. 
        
        We must do it in the `useEffect` hook, because it hooks into React's internals and makes sure
@@ -34,29 +35,49 @@ const todo = (props) => {
        If one of these values changes only then useEffect runs.
        If you put an empty array, you copy componentDidMout,
        because it runs only once.
-
 */
+	useEffect(
+		() => {
+			axios
+				.get('https://todolist-58f53.firebaseio.com/todos.json')
+				.then((res) => {
+					console.log(res);
+					const todoData = res.data;
+					const todos = [];
+					for (const key in todoData) {
+						todos.push({ id: key, name: todoData[key].name });
+					}
+					setTodoList(todos);
+				})
+				.catch((err) => {
+					console.log(err);
+				});
+			/* Replicating `componentWillUnmount`
+        If you add `return` statement here, 
+        then this return statement should also be a function, 
+        which will be executed by React on every render
+        cycle too and React will actually execute this as a cleanup 
+        before it applies the effect of your main
+        code again.
+        */
+			return () => {
+				console.log('Cleanup');
+			};
+		},
+		[ todoButton ]
+	);
 
+	// const mouseMoveHandler = event => {
+	//     console.log(event.clientX, event.clientY);
 
-    useEffect(() => {
-        axios.get('https://todolist-58f53.firebaseio.com/todos.json')
-            .then(res => {
-                console.log(res);
-                const todoData = res.data;
-                const todos = []
-                for (const key in todoData) {
-                    if (todoData.hasOwnProperty(key)) {
-                        todos.push({id: key, name: todoData[key].name});
-                    }
-                }
-                setTodoList(todos)
-                
-            })
-            .catch(err => {
-                console.log(err);
-                
-            })
-    }, [todoName])
+	// }
+
+	// useEffect(() => {
+	//     document.addEventListener('mousemove', mouseMoveHandler)
+	//     return () => {
+	//         document.removeEventListener('mousemove', mouseMoveHandler)
+	//     }
+	// }, [])
 
 	/* Insted of the above code we can merge the states into an object.
     This though is not the optimal approach here,
@@ -73,18 +94,22 @@ const todo = (props) => {
 	// }
 
 	const todoAddHandler = () => {
-        setTodoList(todoList.concat(todoName));
-        axios.post('https://todolist-58f53.firebaseio.com/todos.json', {name: todoName})
-        .then(res => {
-            console.log(res);
-            
-        })
-        .catch(err => {
-            console.log(err);
-            
-        })
+		setTodoList(todoList.concat(todoName));
+		axios
+			.post('https://todolist-58f53.firebaseio.com/todos.json', { name: todoName })
+			.then((res) => {
+				console.log(res);
+			})
+			.catch((err) => {
+				console.log(err);
+			});
 	};
 
+    // For showing the todo on our page
+	const todoFetchHandler = () => {
+		setTodoButton(!todoButton);
+		console.log(todoButton);
+	};
 	// const todoAddHandler = () => {
 	//     setTodoState({
 	//         userInput: todoState.userInput,
@@ -93,13 +118,17 @@ const todo = (props) => {
 	// }
 
 	/* With React.Fragment we can have top level siblings */
+
 	return (
 		<React.Fragment>
 			<input type="text" placeholder="Todo" onChange={inputStateHandler} value={todoName} />
 			<button type="button" onClick={todoAddHandler}>
 				Add
 			</button>
-			<ul>{todoList.map((todo) => <li key={todo.id}>{todo.name}</li>)}</ul>
+			<button type="button" onClick={todoFetchHandler}>
+				Fetch
+			</button>
+			<ul style={{listStyleType:'none'}} >{todoList.map((todo, index) => <li key={index}>{todo.name}</li>)}</ul>
 		</React.Fragment>
 	);
 };
