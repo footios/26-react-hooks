@@ -4,8 +4,9 @@ import axios from 'axios';
 
 const todo = (props) => {
 	const [ todoName, setTodoName ] = useState('');
-	
-	const [ submittedTodo, setSubmittedTodo ] = useState(null);
+	// we don't need this anymore because of the way `useReducer` works.
+	/* With `dispatch` the `todoListReducer` will always receive the latest state. */
+	// const [ submittedTodo, setSubmittedTodo ] = useState(null);
 	
 	// useReducer allows us to bundle the logic we update the state in one func
 	// const [ todoList, setTodoList ] = useState([]); // we use the useReducer instead
@@ -45,14 +46,14 @@ const todo = (props) => {
 		};
 	}, []);
 
-	useEffect(
-		() => {
-			if (submittedTodo) {
-				dispatch({ type: 'ADD', payload: submittedTodo }); // now fetch button is reduntand.
-			}
-		},
-		[ submittedTodo ]
-	);
+	// useEffect(
+	// 	() => {
+	// 		if (submittedTodo) {
+	// 			dispatch({ type: 'ADD', payload: submittedTodo }); // now fetch button is reduntand.
+	// 		}
+	// 	},
+	// 	[ submittedTodo ]
+	// );
 
 	const inputStateHandler = (event) => {
 		setTodoName(event.target.value);
@@ -65,7 +66,7 @@ const todo = (props) => {
 				setTimeout(() => {
 					console.log(res);
 					const todoItem = { id: res.data.name, name: todoName };
-					setSubmittedTodo(todoItem);
+					dispatch({type: 'ADD', payload: todoItem});
 				}, 3000);
 			})
 			.catch((err) => {
