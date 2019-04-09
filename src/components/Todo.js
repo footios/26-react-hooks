@@ -12,7 +12,6 @@ const todo = (props) => {
 
 	const [ todoName, setTodoName ] = useState('');
 	const [ todoList, setTodoList ] = useState([]);
-	const [ todoButton, setTodoButton ] = useState(false);
 
 	/* Let's say that we want to load the todos we send to the server,
        at the point when this component gets loaded. 
@@ -64,7 +63,7 @@ const todo = (props) => {
 				console.log('Cleanup');
 			};
 		},
-		[ todoButton ]
+		[ ]
 	);
 
 	const inputStateHandler = (event) => {
@@ -72,21 +71,16 @@ const todo = (props) => {
 	};
 
 	const todoAddHandler = () => {
-		setTodoList(todoList.concat(todoName));
 		axios
-			.post('https://todolist-58f53.firebaseio.com/todos.json', { name: todoName })
-			.then((res) => {
-				console.log(res);
+		.post('https://todolist-58f53.firebaseio.com/todos.json', { name: todoName })
+		.then((res) => {
+			console.log(res);
+			const todoItem = {id: res.data.name, name: todoName}
+			setTodoList(todoList.concat(todoItem)); // now fetch button is reduntand.
 			})
 			.catch((err) => {
 				console.log(err);
 			});
-	};
-
-    // For showing the todo on our page
-	const todoFetchHandler = () => {
-		setTodoButton(!todoButton);
-		console.log(todoButton);
 	};
 
 	return (
@@ -94,9 +88,6 @@ const todo = (props) => {
 			<input type="text" placeholder="Todo" onChange={inputStateHandler} value={todoName} />
 			<button type="button" onClick={todoAddHandler}>
 				Add
-			</button>
-			<button type="button" onClick={todoFetchHandler}>
-				Fetch
 			</button>
 			<ul style={{listStyleType:'none'}} >{todoList.map((todo, index) => <li key={index}>{todo.name}</li>)}</ul>
 		</React.Fragment>
