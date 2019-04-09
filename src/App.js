@@ -5,25 +5,26 @@ import Header from './components/Header';
 import Auth from './components/Auth';
 
 const app = (props) => {
-	const [ showTodos, setShowTodos ] = useState(true);
-	const [ showAuth, setShowAuth ] = useState(true);
+	const [ page, setPage ] = useState('auth');
 
-	const loadTodosHandler = () => {
-		setShowTodos(!showTodos);
+	const switchPage = (pageName) => {
+		setPage(pageName);
 	};
 
-	const loadAuthHandler = () => {
-		setShowAuth(!showAuth);
-	};
+	/* Alternatives from Q&A instead of .bind:
+	 1. onLoadTodos={() => switchPage('todos')
+	 2. If you define the function like:
+		const switchPage = pageName = () => setPage(pageName)
+		then:
+		onLoadAuth={switchPage('auth')}
+		3. onLoadTodos={setPage.bind(this, 'todos')}
+	 */
 
 	return (
 		<div className="App">
-		<Header onLoadTodos={loadTodosHandler} onLoadAuth={loadAuthHandler} />
-		<hr />
-			{showTodos ? <Todo />
-			 : null}
-			{showAuth ? <Auth /> : null}
-			
+			<Header onLoadTodos={switchPage.bind(this, 'todos')} onLoadAuth={switchPage.bind(this, 'auth')} />
+			<hr />
+			{page === 'todos' ? <Todo /> : <Auth />}
 		</div>
 	);
 };
