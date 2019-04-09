@@ -11,6 +11,7 @@ const todo = (props) => {
     The 2nd is a function we can use to manipulate that state. */
 
 	const [ todoName, setTodoName ] = useState('');
+	const [ submittedTodo, setSubmittedTodo ] = useState(null);
 	const [ todoList, setTodoList ] = useState([]);
 
 	/* Let's say that we want to load the todos we send to the server,
@@ -35,23 +36,22 @@ const todo = (props) => {
        If you put an empty array, you copy componentDidMout,
        because it runs only once.
 */
-	useEffect(
-		() => {
-			axios
-				.get('https://todolist-58f53.firebaseio.com/todos.json')
-				.then((res) => {
-					console.log(res);
-					const todoData = res.data;
-					const todos = [];
-					for (const key in todoData) {
-						todos.push({ id: key, name: todoData[key].name });
-					}
-					setTodoList(todos);
-				})
-				.catch((err) => {
-					console.log(err);
-				});
-			/* Replicating `componentWillUnmount`
+	useEffect(() => {
+		axios
+			.get('https://todolist-58f53.firebaseio.com/todos.json')
+			.then((res) => {
+				console.log(res);
+				const todoData = res.data;
+				const todos = [];
+				for (const key in todoData) {
+					todos.push({ id: key, name: todoData[key].name });
+				}
+				setTodoList(todos);
+			})
+			.catch((err) => {
+				console.log(err);
+			});
+		/* Replicating `componentWillUnmount`
         If you add `return` statement here, 
         then this return statement should also be a function, 
         which will be executed by React on every render
@@ -59,11 +59,18 @@ const todo = (props) => {
         before it applies the effect of your main
         code again.
         */
-			return () => {
-				console.log('Cleanup');
-			};
+		return () => {
+			console.log('Cleanup');
+		};
+	}, []);
+
+	useEffect(
+		() => {
+			if (submittedTodo) {
+				setTodoList(todoList.concat(submittedTodo)); // now fetch button is reduntand.
+			}
 		},
-		[ ]
+		[ submittedTodo ]
 	);
 
 	const inputStateHandler = (event) => {
@@ -72,11 +79,13 @@ const todo = (props) => {
 
 	const todoAddHandler = () => {
 		axios
-		.post('https://todolist-58f53.firebaseio.com/todos.json', { name: todoName })
-		.then((res) => {
-			console.log(res);
-			const todoItem = {id: res.data.name, name: todoName}
-			setTodoList(todoList.concat(todoItem)); // now fetch button is reduntand.
+			.post('https://todolist-58f53.firebaseio.com/todos.json', { name: todoName })
+			.then((res) => {
+				setTimeout(() => {
+					console.log(res);
+					const todoItem = { id: res.data.name, name: todoName };
+					setSubmittedTodo(todoItem);
+				}, 3000);
 			})
 			.catch((err) => {
 				console.log(err);
@@ -89,7 +98,7 @@ const todo = (props) => {
 			<button type="button" onClick={todoAddHandler}>
 				Add
 			</button>
-			<ul style={{listStyleType:'none'}} >{todoList.map((todo, index) => <li key={index}>{todo.name}</li>)}</ul>
+			<ul style={{ listStyleType: 'none' }}>{todoList.map((todo, index) => <li key={index}>{todo.name}</li>)}</ul>
 		</React.Fragment>
 	);
 };
