@@ -5,3 +5,9 @@
 > Bonus: React Hooks
 
 > Lectures 452 - 474
+
+Hooks we check:
+* useState()
+* useEffect()
+* useContext()
+* useReducer()

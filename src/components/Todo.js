@@ -1,41 +1,30 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useReducer } from 'react';
 
 import axios from 'axios';
 
 const todo = (props) => {
-	/* RULES
-    You must set the Hooks, only at the top-level of your function! */
-
-	/* useState('...') takes an initial state and it returns an array with 2 elements. 
-    The 1st is the current state. 
-    The 2nd is a function we can use to manipulate that state. */
-
 	const [ todoName, setTodoName ] = useState('');
+	
 	const [ submittedTodo, setSubmittedTodo ] = useState(null);
-	const [ todoList, setTodoList ] = useState([]);
+	
+	// useReducer allows us to bundle the logic we update the state in one func
+	// const [ todoList, setTodoList ] = useState([]); // we use the useReducer instead
 
-	/* Let's say that we want to load the todos we send to the server,
-       at the point when this component gets loaded. 
-       
-       We must do it in the `useEffect` hook, because it hooks into React's internals and makes sure
-       that this code executes at the right time 
-       which is after this render cycle finished,
-       so that this can run in a high performant way 
-       and that the UI is always updated correctly 
-       and you don't end up with some strange state changes 
-       behind the scenes outside of what React expected.
+	const todoListReducer = (state, action) => {
+		switch (action.type) {
+			case 'ADD':
+				return state.concat(action.payload);
+			case 'SET':
+				return action.payload; // whatever you return is your new state
+			case 'REMOVE':
+				return state.filter((todo) => todo.id !== action.payload);
+			default:
+				return state;
+		}
+	};
+	// 1st: func, 2d: initial state, 3d: action
+	const [ todoList, dispatch ] = useReducer(todoListReducer, []);
 
-       So we added the `useEffect` hook to cause side effects,
-       it worked but we caused quite a big side effect 
-       because we entered an infinite loop.
-       The reason for that is that useEffect does not only run once, 
-       like for example componentDidMount did
-       but it runs after every render cycle.
-       `useEffect`, takes a second argument, which is an array of values.
-       If one of these values changes only then useEffect runs.
-       If you put an empty array, you copy componentDidMout,
-       because it runs only once.
-*/
 	useEffect(() => {
 		axios
 			.get('https://todolist-58f53.firebaseio.com/todos.json')
@@ -46,19 +35,11 @@ const todo = (props) => {
 				for (const key in todoData) {
 					todos.push({ id: key, name: todoData[key].name });
 				}
-				setTodoList(todos);
+				dispatch({ type: 'SET', payload: todos });
 			})
 			.catch((err) => {
 				console.log(err);
 			});
-		/* Replicating `componentWillUnmount`
-        If you add `return` statement here, 
-        then this return statement should also be a function, 
-        which will be executed by React on every render
-        cycle too and React will actually execute this as a cleanup 
-        before it applies the effect of your main
-        code again.
-        */
 		return () => {
 			console.log('Cleanup');
 		};
@@ -67,7 +48,7 @@ const todo = (props) => {
 	useEffect(
 		() => {
 			if (submittedTodo) {
-				setTodoList(todoList.concat(submittedTodo)); // now fetch button is reduntand.
+				dispatch({ type: 'ADD', payload: submittedTodo }); // now fetch button is reduntand.
 			}
 		},
 		[ submittedTodo ]
@@ -92,13 +73,28 @@ const todo = (props) => {
 			});
 	};
 
+	const todoRemoveHandler = (todoId) => {
+		axios
+			.delete(`https://todolist-58f53.firebaseio.com/todos/${todoId}.json`)
+			.then((res) => {
+				dispatch({ type: 'REMOVE', payload: todoId });
+			})
+			.catch((err) => console.log(err));
+	};
+
 	return (
 		<React.Fragment>
 			<input type="text" placeholder="Todo" onChange={inputStateHandler} value={todoName} />
 			<button type="button" onClick={todoAddHandler}>
 				Add
 			</button>
-			<ul style={{ listStyleType: 'none' }}>{todoList.map((todo, index) => <li key={index}>{todo.name}</li>)}</ul>
+			<ul style={{ listStyleType: 'none' }}>
+				{todoList.map((todo) => (
+					<li key={todo.id} onClick={todoRemoveHandler.bind(this, todo.id)}>
+						{todo.name}
+					</li>
+				))}
+			</ul>
 		</React.Fragment>
 	);
 };
