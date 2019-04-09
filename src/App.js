@@ -1,14 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import Todo from './components/Todo';
 import Header from './components/Header';
 import Auth from './components/Auth';
+import AuthContext from './auth-context';
 
 const app = (props) => {
 	const [ page, setPage ] = useState('auth');
+	const [ authStatus, setAuthStatus ] = useState(false);
+
+	useEffect(() => {}, authStatus);
 
 	const switchPage = (pageName) => {
 		setPage(pageName);
+	};
+
+	const login = () => {
+		setAuthStatus(true);
+	};
+
+	const logout = () => {
+		setAuthStatus(false);
 	};
 
 	/* Alternatives from Q&A instead of .bind:
@@ -22,9 +34,11 @@ const app = (props) => {
 
 	return (
 		<div className="App">
-			<Header onLoadTodos={switchPage.bind(this, 'todos')} onLoadAuth={switchPage.bind(this, 'auth')} />
-			<hr />
-			{page === 'todos' ? <Todo /> : <Auth />}
+			<AuthContext.Provider value={{ status: authStatus, login: login }}>
+				<Header onLoadTodos={switchPage.bind(this, 'todos')} onLoadAuth={switchPage.bind(this, 'auth')} />
+				<hr />
+				{page === 'todos' ? <Todo /> : <Auth onLogout={logout} />}
+			</AuthContext.Provider>
 		</div>
 	);
 };
