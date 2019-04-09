@@ -14,7 +14,7 @@ const todo = (props) => {
 	const [ todoList, setTodoList ] = useState([]);
 	const [ todoButton, setTodoButton ] = useState(false);
 
-	/* Let's say that we want to load the todos we sent to the server,
+	/* Let's say that we want to load the todos we send to the server,
        at the point when this component gets loaded. 
        
        We must do it in the `useEffect` hook, because it hooks into React's internals and makes sure
@@ -67,31 +67,9 @@ const todo = (props) => {
 		[ todoButton ]
 	);
 
-	// const mouseMoveHandler = event => {
-	//     console.log(event.clientX, event.clientY);
-
-	// }
-
-	// useEffect(() => {
-	//     document.addEventListener('mousemove', mouseMoveHandler)
-	//     return () => {
-	//         document.removeEventListener('mousemove', mouseMoveHandler)
-	//     }
-	// }, [])
-
-	/* Insted of the above code we can merge the states into an object.
-    This though is not the optimal approach here,
-    because we have to update every property in the object everytime. */
-
-	// const [todoState, setTodoState] = useState({userInput: '', todoList: []})
-
 	const inputStateHandler = (event) => {
 		setTodoName(event.target.value);
 	};
-
-	// const inputStateHandler = (event) => {
-	//     setTodoState({userInput: event.target.value, todoList: todoState.todoList})
-	// }
 
 	const todoAddHandler = () => {
 		setTodoList(todoList.concat(todoName));
@@ -110,14 +88,6 @@ const todo = (props) => {
 		setTodoButton(!todoButton);
 		console.log(todoButton);
 	};
-	// const todoAddHandler = () => {
-	//     setTodoState({
-	//         userInput: todoState.userInput,
-	//         todoList: todoState.todoList.concat(todoState.userInput)
-	//     })
-	// }
-
-	/* With React.Fragment we can have top level siblings */
 
 	return (
 		<React.Fragment>
