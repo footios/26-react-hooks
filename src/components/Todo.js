@@ -1,15 +1,18 @@
-import React, { useState, useEffect, useReducer } from 'react';
+import React, { useEffect, useReducer, useRef } from 'react';
 
 import axios from 'axios';
 
 const todo = (props) => {
-	const [ todoName, setTodoName ] = useState('');
+	// const [ todoName, setTodoName ] = useState(''); // we useRef instead
+
 	// we don't need this anymore because of the way `useReducer` works.
 	/* With `dispatch` the `todoListReducer` will always receive the latest state. */
 	// const [ submittedTodo, setSubmittedTodo ] = useState(null);
 	
 	// useReducer allows us to bundle the logic we update the state in one func
 	// const [ todoList, setTodoList ] = useState([]); // we use the useReducer instead
+
+	const todoInputRef = useRef();
 
 	const todoListReducer = (state, action) => {
 		switch (action.type) {
@@ -46,20 +49,17 @@ const todo = (props) => {
 		};
 	}, []);
 
-	// useEffect(
-	// 	() => {
-	// 		if (submittedTodo) {
-	// 			dispatch({ type: 'ADD', payload: submittedTodo }); // now fetch button is reduntand.
-	// 		}
-	// 	},
-	// 	[ submittedTodo ]
-	// );
+	// We useRef instead.
+	/* instead we use the internal state management 
+	of the input element and use a ref to extract 
+	its `current` `value`  */
+	// const inputStateHandler = (event) => {
+	// 	setTodoName(event.target.value);
+	// };
 
-	const inputStateHandler = (event) => {
-		setTodoName(event.target.value);
-	};
-
+	
 	const todoAddHandler = () => {
+		const todoName = todoInputRef.current.value;
 		axios
 			.post('https://todolist-58f53.firebaseio.com/todos.json', { name: todoName })
 			.then((res) => {
@@ -85,7 +85,7 @@ const todo = (props) => {
 
 	return (
 		<React.Fragment>
-			<input type="text" placeholder="Todo" onChange={inputStateHandler} value={todoName} />
+			<input type="text" placeholder="Todo" ref={todoInputRef} />
 			<button type="button" onClick={todoAddHandler}>
 				Add
 			</button>
