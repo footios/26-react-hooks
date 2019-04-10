@@ -1,6 +1,7 @@
-import React, { useEffect, useReducer, useRef } from 'react';
-
+import React, { useState, useEffect, useReducer, useRef, useMemo } from 'react';
 import axios from 'axios';
+
+import List from './List';
 
 const todo = (props) => {
 	// const [ todoName, setTodoName ] = useState(''); // we useRef instead
@@ -8,9 +9,11 @@ const todo = (props) => {
 	// we don't need this anymore because of the way `useReducer` works.
 	/* With `dispatch` the `todoListReducer` will always receive the latest state. */
 	// const [ submittedTodo, setSubmittedTodo ] = useState(null);
-	
+
 	// useReducer allows us to bundle the logic we update the state in one func
 	// const [ todoList, setTodoList ] = useState([]); // we use the useReducer instead
+
+	const [ inputIsValid, setInputIsValid ] = useState(false);
 
 	const todoInputRef = useRef();
 
@@ -57,7 +60,6 @@ const todo = (props) => {
 	// 	setTodoName(event.target.value);
 	// };
 
-	
 	const todoAddHandler = () => {
 		const todoName = todoInputRef.current.value;
 		axios
@@ -66,7 +68,7 @@ const todo = (props) => {
 				setTimeout(() => {
 					console.log(res);
 					const todoItem = { id: res.data.name, name: todoName };
-					dispatch({type: 'ADD', payload: todoItem});
+					dispatch({ type: 'ADD', payload: todoItem });
 				}, 3000);
 			})
 			.catch((err) => {
@@ -83,19 +85,27 @@ const todo = (props) => {
 			.catch((err) => console.log(err));
 	};
 
+	const inputValidationHandler = (event) => {
+		if (event.target.value.trim() === '') {
+			setInputIsValid(false);
+		} else {
+			setInputIsValid(true);
+		}
+	};
+
 	return (
 		<React.Fragment>
-			<input type="text" placeholder="Todo" ref={todoInputRef} />
+			<input
+				style={{ backgroundColor: inputIsValid ? 'transparent' : 'red' }}
+				type="text"
+				placeholder="Todo"
+				ref={todoInputRef}
+				onChange={inputValidationHandler}
+			/>
 			<button type="button" onClick={todoAddHandler}>
 				Add
 			</button>
-			<ul style={{ listStyleType: 'none' }}>
-				{todoList.map((todo) => (
-					<li key={todo.id} onClick={todoRemoveHandler.bind(this, todo.id)}>
-						{todo.name}
-					</li>
-				))}
-			</ul>
+			{ useMemo(() => <List items={todoList} onClick={todoRemoveHandler} />, [todoList]) }
 		</React.Fragment>
 	);
 };
